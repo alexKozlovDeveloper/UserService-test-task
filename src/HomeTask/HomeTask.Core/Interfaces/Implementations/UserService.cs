@@ -1,16 +1,16 @@
-﻿using HomeTask.Core.Models;
-using System.Text;
+﻿using HomeTask.Core.Infrastructure.Database;
+using HomeTask.Core.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HomeTask.Core.Interfaces.Implementations;
 
 public class UserService(
-    IPasswordHashService PasswordHashService
+    IPasswordHashService PasswordHashService,
+    HomeTaskDbContext DbContext
     )
 {
-
-
-    public void CreateUser(
-        CreateUserDataModel model
+    public async Task<int> CreateUser(
+        CreateUserDataModel model, CancellationToken ct
         //string name, string email, string password, string role
         )
     {
@@ -35,8 +35,11 @@ public class UserService(
             Role = model.Role
         };
 
-        //DbSetContainer.Users.Add(user);
+        DbContext.Users.Add(user);
 
+        await DbContext.SaveChangesAsync(ct);
+
+        return user.Id;
 
         //var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
@@ -48,38 +51,61 @@ public class UserService(
         //}
     }
 
-    public List<string> GetUsers()
+    public async Task<List<UserDto>> GetUsersAsync(CancellationToken ct)
     {
-        var users = new List<string>();
+        //var users = new List<string>();
 
-        using (var db = new SqlConnection("connectionString"))
-        {
-            db.Open();
-            var command = new SqlCommand("SELECT Name FROM Users", db);
-            using (var reader = command.ExecuteReader())
+        var users = await DbContext.Users
+            .Select(x => new UserDto
             {
-                while (reader.Read())
-                {
-                    users.Add(reader.GetString(0));
-                }
-            }
-        }
+                Name = x.Name
+            })
+            .ToListAsync(ct);
 
         return users;
+
+        //using (var db = new SqlConnection("connectionString"))
+        //{
+        //    db.Open();
+        //    var command = new SqlCommand("SELECT Name FROM Users", db);
+        //    using (var reader = command.ExecuteReader())
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            users.Add(reader.GetString(0));
+        //        }
+        //    }
+        //}
+
+        //return users;
     }
 
-    public void UpdateUserRole(int userId, string newRole)
+    public async Task UpdateUserRole(int userId, UserRole newRole, CancellationToken ct)
     {
-        if (newRole != "Admin" && newRole != "User")
+        var user = await DbContext.Users
+            .Where(x => x.Id == userId)
+            .FirstOrDefaultAsync(ct);
+
+        if (user == null) 
         {
-            throw new Exception("Invalid role");
+            throw new Exception($"User with id '{userId}' not found");
         }
 
-        using (var db = new SqlConnection("connectionString"))
-        {
-            db.Open();
-            var command = new SqlCommand($"UPDATE Users SET Role = '{newRole}' WHERE Id = {userId}", db);
-            command.ExecuteNonQuery();
-        }
+        user.Role = newRole;
+
+        await DbContext.SaveChangesAsync(ct);
+
+
+        //if (newRole != "Admin" && newRole != "User")
+        //{
+        //    throw new Exception("Invalid role");
+        //}
+
+        //using (var db = new SqlConnection("connectionString"))
+        //{
+        //    db.Open();
+        //    var command = new SqlCommand($"UPDATE Users SET Role = '{newRole}' WHERE Id = {userId}", db);
+        //    command.ExecuteNonQuery();
+        //}
     }
 }
