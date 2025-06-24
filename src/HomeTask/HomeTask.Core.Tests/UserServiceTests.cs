@@ -5,272 +5,271 @@ using HomeTask.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
-namespace HomeTask.Core.Tests
-{
-    public class UserServiceTests
-    {        
-        private const string ValidName = "Jon";
-        private const string ValidEmail = "Jon@email.com";
-        private const string ValidPassword = "avcx@#241FD";
+namespace HomeTask.Core.Tests;
 
-        [Fact]
-        public async Task GetUsersAsync_ReturnListOfUsers()
+public class UserServiceTests
+{        
+    private const string ValidName = "Jon";
+    private const string ValidEmail = "Jon@email.com";
+    private const string ValidPassword = "avcx@#241FD";
+
+    [Fact]
+    public async Task GetUsersAsync_ReturnListOfUsers()
+    {
+        // Arrange
+        var hashServiceMock = new Mock<IPasswordHashService>();
+        var userNotificationService = new Mock<IUserNotificationService>();
+
+        var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
+        var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
+        var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
+
+        var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
+            .UseInMemoryDatabase("TestDb")
+            .Options;
+
+        using var context = new HomeTaskDbContext(options);
+
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+
+        context.Users.AddRange(user1, user2, user3);
+
+        await context.SaveChangesAsync();
+
+        var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
+
+        // Act
+        var result = await userService.GetUsersAsync(default);
+
+        // Assert
+        Assert.Equal(3, result.Count);
+
+        EqualUser(user1, result[0]);
+        EqualUser(user2, result[1]);
+        EqualUser(user3, result[2]);
+    }
+
+    [Fact]
+    public async Task GetUsersAsync_SuccessfullyUpdated()
+    {
+        // Arrange
+        var hashServiceMock = new Mock<IPasswordHashService>();
+        var userNotificationService = new Mock<IUserNotificationService>();
+
+        UserDto? notifiedUser = null;
+
+        userNotificationService
+            .Setup(x => x.NotifyUserUpdated(It.IsAny<UserDto>()))
+            .Callback<UserDto>(user => notifiedUser = user)
+            .Returns(Task.CompletedTask);
+
+        var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
+        var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
+        var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
+
+        var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
+            .UseInMemoryDatabase("TestDb")
+            .Options;
+
+        using var context = new HomeTaskDbContext(options);
+
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+
+        context.Users.AddRange(user1, user2, user3);
+
+        await context.SaveChangesAsync();
+
+        var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
+
+        var userId = user2.Id;
+        var newUserRole = UserRole.Admin;
+
+        // Act
+        await userService.UpdateUserRoleAsync(userId, newUserRole, default);
+
+        // Assert            
+        var updatedUser = context.Users
+            .Where(x => x.Id == userId)
+            .FirstOrDefault();
+
+        Assert.NotNull(updatedUser);
+
+        Assert.Equal(newUserRole, updatedUser.Role);
+
+        Assert.NotNull(notifiedUser);
+
+        Assert.Equal("Jon", notifiedUser.Name);
+        Assert.Equal(newUserRole, notifiedUser.Role);
+    }
+
+    [Fact]
+    public async Task GetUsersAsync_UserNotFound()
+    {
+        // Arrange
+        var hashServiceMock = new Mock<IPasswordHashService>();
+        var userNotificationService = new Mock<IUserNotificationService>();
+
+        var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
+        var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
+        var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
+
+        var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
+            .UseInMemoryDatabase("TestDb")
+            .Options;
+
+        using var context = new HomeTaskDbContext(options);
+
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+
+        context.Users.AddRange(user1, user2, user3);
+
+        await context.SaveChangesAsync();
+
+        var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
+
+        var userId = -1;
+        var newUserRole = UserRole.Admin;
+        var expectedErrorMessage = $"User with id '{userId}' not found";
+        string resultErrorMessage = null;
+
+        // Act
+        try
         {
-            // Arrange
-            var hashServiceMock = new Mock<IPasswordHashService>();
-            var userNotificationService = new Mock<IUserNotificationService>();
-
-            var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
-            var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
-            var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
-
-            var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
-                .UseInMemoryDatabase("TestDb")
-                .Options;
-
-            using var context = new HomeTaskDbContext(options);
-
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
-
-            context.Users.AddRange(user1, user2, user3);
-
-            await context.SaveChangesAsync();
-
-            var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
-
-            // Act
-            var result = await userService.GetUsersAsync(default);
-
-            // Assert
-            Assert.Equal(3, result.Count);
-
-            EqualUser(user1, result[0]);
-            EqualUser(user2, result[1]);
-            EqualUser(user3, result[2]);
-        }
-
-        [Fact]
-        public async Task GetUsersAsync_SuccessfullyUpdated()
-        {
-            // Arrange
-            var hashServiceMock = new Mock<IPasswordHashService>();
-            var userNotificationService = new Mock<IUserNotificationService>();
-
-            UserDto? notifiedUser = null;
-
-            userNotificationService
-                .Setup(x => x.NotifyUserUpdated(It.IsAny<UserDto>()))
-                .Callback<UserDto>(user => notifiedUser = user)
-                .Returns(Task.CompletedTask);
-
-            var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
-            var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
-            var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
-
-            var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
-                .UseInMemoryDatabase("TestDb")
-                .Options;
-
-            using var context = new HomeTaskDbContext(options);
-
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
-
-            context.Users.AddRange(user1, user2, user3);
-
-            await context.SaveChangesAsync();
-
-            var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
-
-            var userId = user2.Id;
-            var newUserRole = UserRole.Admin;
-
-            // Act
             await userService.UpdateUserRoleAsync(userId, newUserRole, default);
-
-            // Assert            
-            var updatedUser = context.Users
-                .Where(x => x.Id == userId)
-                .FirstOrDefault();
-
-            Assert.NotNull(updatedUser);
-
-            Assert.Equal(newUserRole, updatedUser.Role);
-
-            Assert.NotNull(notifiedUser);
-
-            Assert.Equal("Jon", notifiedUser.Name);
-            Assert.Equal(newUserRole, notifiedUser.Role);
         }
-
-        [Fact]
-        public async Task GetUsersAsync_UserNotFound()
+        catch (Exception e)
         {
-            // Arrange
-            var hashServiceMock = new Mock<IPasswordHashService>();
-            var userNotificationService = new Mock<IUserNotificationService>();
-
-            var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
-            var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
-            var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
-
-            var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
-                .UseInMemoryDatabase("TestDb")
-                .Options;
-
-            using var context = new HomeTaskDbContext(options);
-
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
-
-            context.Users.AddRange(user1, user2, user3);
-
-            await context.SaveChangesAsync();
-
-            var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
-
-            var userId = -1;
-            var newUserRole = UserRole.Admin;
-            var expectedErrorMessage = $"User with id '{userId}' not found";
-            string resultErrorMessage = null;
-
-            // Act
-            try
-            {
-                await userService.UpdateUserRoleAsync(userId, newUserRole, default);
-            }
-            catch (Exception e)
-            {
-                resultErrorMessage = e.Message;
-            }
-
-            // Assert
-            Assert.Equal(expectedErrorMessage, resultErrorMessage);
+            resultErrorMessage = e.Message;
         }
 
-        [Fact]
-        public async Task CreateUserAsync_SuccessfullyCreated()
+        // Assert
+        Assert.Equal(expectedErrorMessage, resultErrorMessage);
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_SuccessfullyCreated()
+    {
+        // Arrange
+        var hashServiceMock = new Mock<IPasswordHashService>();
+        var userNotificationService = new Mock<IUserNotificationService>();
+
+        var passwordHash = "abc3";
+
+        hashServiceMock
+            .Setup(x => x.Hash(It.IsAny<string>()))
+            .Returns(passwordHash);
+
+        var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
+        var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
+        var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
+
+        var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
+            .UseInMemoryDatabase("TestDb")
+            .Options;
+
+        using var context = new HomeTaskDbContext(options);
+
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+
+        context.Users.AddRange(user1, user2, user3);
+
+        await context.SaveChangesAsync();
+
+        var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
+
+        var createUserModel = new CreateUserDataModel
         {
-            // Arrange
-            var hashServiceMock = new Mock<IPasswordHashService>();
-            var userNotificationService = new Mock<IUserNotificationService>();
+            Name = "Mike",
+            Email = "Mike@email.com",
+            Password = "avcx@#241FD",
+            Role = UserRole.User
+        };
 
-            var passwordHash = "abc3";
+        // Act
+        var createdUserId = await userService.CreateUserAsync(createUserModel, default);
 
-            hashServiceMock
-                .Setup(x => x.Hash(It.IsAny<string>()))
-                .Returns(passwordHash);
+        // Assert
+        var createdUser = context.Users
+            .Where(x => x.Id == createdUserId)
+            .FirstOrDefault();
 
-            var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
-            var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
-            var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
+        Assert.NotNull(createdUser);
 
-            var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
-                .UseInMemoryDatabase("TestDb")
-                .Options;
+        Assert.Equal(createUserModel.Name, createdUser.Name);
+        Assert.Equal(createUserModel.Email, createdUser.Email);
+        Assert.Equal(createUserModel.Role, createdUser.Role);
+        Assert.Equal(passwordHash, createdUser.PasswordHash);
+    }
 
-            using var context = new HomeTaskDbContext(options);
+    [Theory]
+    [InlineData(ValidName, null, ValidPassword, "Email can't be empty")]
+    [InlineData(ValidName, "", ValidPassword, "Email can't be empty")]
+    [InlineData(ValidName, "abc.com", ValidPassword, "Invalid email")]
+    [InlineData(ValidName, "@abc", ValidPassword, "Invalid email")]
+    [InlineData("", ValidEmail, ValidPassword, "Name can't be empty")]
+    [InlineData("  ", ValidEmail, ValidPassword, "Name can't be empty")]
+    [InlineData(null, ValidEmail, ValidPassword, "Name can't be empty")]
+    [InlineData(ValidName, ValidEmail, null, "Password can't be empty")]
+    [InlineData(ValidName, ValidEmail, "", "Password can't be empty")]
+    [InlineData(ValidName, ValidEmail, "221121", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
+    [InlineData(ValidName, ValidEmail, "asfsa", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
+    [InlineData(ValidName, ValidEmail, "534g34g43g34g34", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
+    public async Task CreateUserAsync_ValidationFailed(string name, string email, string password, string expectedErrorMessage)
+    {
+        // Arrange
+        var hashServiceMock = new Mock<IPasswordHashService>();
+        var userNotificationService = new Mock<IUserNotificationService>();
 
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
+        var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
+        var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
+        var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
 
-            context.Users.AddRange(user1, user2, user3);
+        var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
+            .UseInMemoryDatabase("TestDb")
+            .Options;
 
-            await context.SaveChangesAsync();
+        using var context = new HomeTaskDbContext(options);
 
-            var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
 
-            var createUserModel = new CreateUserDataModel
-            {
-                Name = "Mike",
-                Email = "Mike@email.com",
-                Password = "avcx@#241FD",
-                Role = UserRole.User
-            };
+        context.Users.AddRange(user1, user2, user3);
 
-            // Act
-            var createdUserId = await userService.CreateUserAsync(createUserModel, default);
+        await context.SaveChangesAsync();
 
-            // Assert
-            var createdUser = context.Users
-                .Where(x => x.Id == createdUserId)
-                .FirstOrDefault();
+        var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
 
-            Assert.NotNull(createdUser);
-
-            Assert.Equal(createUserModel.Name, createdUser.Name);
-            Assert.Equal(createUserModel.Email, createdUser.Email);
-            Assert.Equal(createUserModel.Role, createdUser.Role);
-            Assert.Equal(passwordHash, createdUser.PasswordHash);
-        }
-
-        [Theory]
-        [InlineData(ValidName, null, ValidPassword, "Email can't be empty")]
-        [InlineData(ValidName, "", ValidPassword, "Email can't be empty")]
-        [InlineData(ValidName, "abc.com", ValidPassword, "Invalid email")]
-        [InlineData(ValidName, "@abc", ValidPassword, "Invalid email")]
-        [InlineData("", ValidEmail, ValidPassword, "Name can't be empty")]
-        [InlineData("  ", ValidEmail, ValidPassword, "Name can't be empty")]
-        [InlineData(null, ValidEmail, ValidPassword, "Name can't be empty")]
-        [InlineData(ValidName, ValidEmail, null, "Password can't be empty")]
-        [InlineData(ValidName, ValidEmail, "", "Password can't be empty")]
-        [InlineData(ValidName, ValidEmail, "221121", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
-        [InlineData(ValidName, ValidEmail, "asfsa", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
-        [InlineData(ValidName, ValidEmail, "534g34g43g34g34", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
-        public async Task CreateUserAsync_ValidationFailed(string name, string email, string password, string expectedErrorMessage)
+        var createUserModel = new CreateUserDataModel
         {
-            // Arrange
-            var hashServiceMock = new Mock<IPasswordHashService>();
-            var userNotificationService = new Mock<IUserNotificationService>();
+            Name = name,
+            Email = email,
+            Password = password,
+            Role = UserRole.User
+        };
 
-            var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
-            var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
-            var user3 = new User { Name = "Sam", Email = "Sam@email.com", PasswordHash = "ZsCIqvoYlst2x", Role = UserRole.Admin };
+        string resultErrorMessage = null;
 
-            var options = new DbContextOptionsBuilder<HomeTaskDbContext>()
-                .UseInMemoryDatabase("TestDb")
-                .Options;
-
-            using var context = new HomeTaskDbContext(options);
-
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
-
-            context.Users.AddRange(user1, user2, user3);
-
-            await context.SaveChangesAsync();
-
-            var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
-
-            var createUserModel = new CreateUserDataModel
-            {
-                Name = name,
-                Email = email,
-                Password = password,
-                Role = UserRole.User
-            };
-
-            string resultErrorMessage = null;
-
-            // Act
-            try
-            {
-                _ = await userService.CreateUserAsync(createUserModel, default);
-            }
-            catch (Exception e)
-            {
-                resultErrorMessage = e.Message;
-            }
-
-            // Assert
-            Assert.Equal(expectedErrorMessage, resultErrorMessage);
-        }
-
-        private void EqualUser(User expected, UserDto result) 
+        // Act
+        try
         {
-            Assert.Equal(expected.Name, result.Name);
-            Assert.Equal(expected.Role, result.Role);
+            _ = await userService.CreateUserAsync(createUserModel, default);
         }
+        catch (Exception e)
+        {
+            resultErrorMessage = e.Message;
+        }
+
+        // Assert
+        Assert.Equal(expectedErrorMessage, resultErrorMessage);
+    }
+
+    private void EqualUser(User expected, UserDto result) 
+    {
+        Assert.Equal(expected.Name, result.Name);
+        Assert.Equal(expected.Role, result.Role);
     }
 }
