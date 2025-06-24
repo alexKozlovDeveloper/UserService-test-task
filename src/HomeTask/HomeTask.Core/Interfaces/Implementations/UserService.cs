@@ -1,5 +1,7 @@
-﻿using HomeTask.Core.Infrastructure.Database;
-using HomeTask.Core.Models;
+﻿using HomeTask.Core.Entities;
+using HomeTask.Core.Infrastructure.Database;
+using HomeTask.Core.Models.Request;
+using HomeTask.Core.Models.Response;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeTask.Core.Interfaces.Implementations;
@@ -10,7 +12,7 @@ public class UserService(
     HomeTaskDbContext DbContext
     ) : IUserService
 {
-    public async Task<int> CreateUserAsync(CreateUserDataModel model, CancellationToken ct)
+    public async Task<int> CreateUserAsync(CreateUserRequestModel model, CancellationToken ct)
     {
         model.Validate();
 
@@ -29,10 +31,10 @@ public class UserService(
         return user.Id;
     }
 
-    public async Task<IList<UserDto>> GetUsersAsync(CancellationToken ct)
+    public async Task<IList<UserResponseModel>> GetUsersAsync(CancellationToken ct)
     {
         var users = await DbContext.Users
-            .Select(x => new UserDto
+            .Select(x => new UserResponseModel
             {
                 Name = x.Name,
                 Role = x.Role
@@ -57,6 +59,6 @@ public class UserService(
 
         await DbContext.SaveChangesAsync(ct);
 
-        await UserNotificationService.NotifyUserUpdated(new UserDto { Name = user.Name, Role = user.Role });
+        await UserNotificationService.NotifyUserUpdated(new UserResponseModel { Name = user.Name, Role = user.Role });
     }
 }

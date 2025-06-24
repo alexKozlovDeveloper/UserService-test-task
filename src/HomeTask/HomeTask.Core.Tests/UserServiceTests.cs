@@ -1,7 +1,10 @@
+using HomeTask.Core.Entities;
 using HomeTask.Core.Infrastructure.Database;
 using HomeTask.Core.Interfaces;
 using HomeTask.Core.Interfaces.Implementations;
 using HomeTask.Core.Models;
+using HomeTask.Core.Models.Request;
+using HomeTask.Core.Models.Response;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
@@ -57,11 +60,11 @@ public class UserServiceTests
         var hashServiceMock = new Mock<IPasswordHashService>();
         var userNotificationService = new Mock<IUserNotificationService>();
 
-        UserDto? notifiedUser = null;
+        UserResponseModel? notifiedUser = null;
 
         userNotificationService
-            .Setup(x => x.NotifyUserUpdated(It.IsAny<UserDto>()))
-            .Callback<UserDto>(user => notifiedUser = user)
+            .Setup(x => x.NotifyUserUpdated(It.IsAny<UserResponseModel>()))
+            .Callback<UserResponseModel>(user => notifiedUser = user)
             .Returns(Task.CompletedTask);
 
         var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
@@ -181,7 +184,7 @@ public class UserServiceTests
 
         var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
 
-        var createUserModel = new CreateUserDataModel
+        var createUserModel = new CreateUserRequestModel
         {
             Name = "Mike",
             Email = "Mike@email.com",
@@ -206,18 +209,19 @@ public class UserServiceTests
     }
 
     [Theory]
-    [InlineData(ValidName, null, ValidPassword, "Email can't be empty")]
-    [InlineData(ValidName, "", ValidPassword, "Email can't be empty")]
-    [InlineData(ValidName, "abc.com", ValidPassword, "Invalid email")]
-    [InlineData(ValidName, "@abc", ValidPassword, "Invalid email")]
-    [InlineData("", ValidEmail, ValidPassword, "Name can't be empty")]
-    [InlineData("  ", ValidEmail, ValidPassword, "Name can't be empty")]
-    [InlineData(null, ValidEmail, ValidPassword, "Name can't be empty")]
-    [InlineData(ValidName, ValidEmail, null, "Password can't be empty")]
-    [InlineData(ValidName, ValidEmail, "", "Password can't be empty")]
-    [InlineData(ValidName, ValidEmail, "221121", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
-    [InlineData(ValidName, ValidEmail, "asfsa", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
-    [InlineData(ValidName, ValidEmail, "534g34g43g34g34", "Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
+    [InlineData(ValidName, null, ValidPassword, "Validation failed: Email can't be empty")]
+    [InlineData(ValidName, "", ValidPassword, "Validation failed: Email can't be empty")]
+    [InlineData(ValidName, "abc.com", ValidPassword, "Validation failed: Invalid email")]
+    [InlineData(ValidName, "@abc", ValidPassword, "Validation failed: Invalid email")]
+    [InlineData("", ValidEmail, ValidPassword, "Validation failed: Name can't be empty")]
+    [InlineData("  ", ValidEmail, ValidPassword, "Validation failed: Name can't be empty")]
+    [InlineData(null, ValidEmail, ValidPassword, "Validation failed: Name can't be empty")]
+    [InlineData(ValidName, ValidEmail, null, "Validation failed: Password can't be empty")]
+    [InlineData(ValidName, ValidEmail, "", "Validation failed: Password can't be empty")]
+    [InlineData("", "", "", "Validation failed: Name can't be empty; Email can't be empty; Password can't be empty")]
+    [InlineData(ValidName, ValidEmail, "221121", "Validation failed: Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
+    [InlineData(ValidName, ValidEmail, "asfsa", "Validation failed: Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
+    [InlineData(ValidName, ValidEmail, "534g34g43g34g34", "Validation failed: Invalid Password! Password must contains: minimum 8 characters, at least one uppercase letter(A-Z), at least one lowercase letter(a-z), at least one number(0-9), at least one special character e.g. !@#$%^&*()")]
     public async Task CreateUserAsync_ValidationFailed(string name, string email, string password, string expectedErrorMessage)
     {
         // Arrange
@@ -243,7 +247,7 @@ public class UserServiceTests
 
         var userService = new UserService(hashServiceMock.Object, userNotificationService.Object, context);
 
-        var createUserModel = new CreateUserDataModel
+        var createUserModel = new CreateUserRequestModel
         {
             Name = name,
             Email = email,
@@ -267,7 +271,7 @@ public class UserServiceTests
         Assert.Equal(expectedErrorMessage, resultErrorMessage);
     }
 
-    private void EqualUser(User expected, UserDto result) 
+    private void EqualUser(User expected, UserResponseModel result) 
     {
         Assert.Equal(expected.Name, result.Name);
         Assert.Equal(expected.Role, result.Role);

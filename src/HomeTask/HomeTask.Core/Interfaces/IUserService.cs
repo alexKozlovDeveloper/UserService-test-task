@@ -1,12 +1,14 @@
-﻿using HomeTask.Core.Models;
+﻿using HomeTask.Core.Entities;
+using HomeTask.Core.Models.Request;
+using HomeTask.Core.Models.Response;
 
 namespace HomeTask.Core.Interfaces;
 
 public interface IUserService
 {
-    Task<int> CreateUserAsync(CreateUserDataModel model, CancellationToken ct);
+    Task<int> CreateUserAsync(CreateUserRequestModel model, CancellationToken ct);
 
-    Task<IList<UserDto>> GetUsersAsync(CancellationToken ct);
+    Task<IList<UserResponseModel>> GetUsersAsync(CancellationToken ct);
 
     Task UpdateUserRoleAsync(int userId, UserRole newRole, CancellationToken ct);
 }

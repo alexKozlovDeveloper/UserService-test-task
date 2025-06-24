@@ -1,4 +1,4 @@
-﻿namespace HomeTask.Core.Models;
+﻿namespace HomeTask.Core.Entities;
 
 public enum UserRole
 {

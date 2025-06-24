@@ -1,8 +1,8 @@
-﻿using HomeTask.Core.Models;
+﻿using HomeTask.Core.Models.Response;
 
 namespace HomeTask.Core.Interfaces;
 
 public interface IUserNotificationService
 {
-    Task NotifyUserUpdated(UserDto user);
+    Task NotifyUserUpdated(UserResponseModel user);
 }

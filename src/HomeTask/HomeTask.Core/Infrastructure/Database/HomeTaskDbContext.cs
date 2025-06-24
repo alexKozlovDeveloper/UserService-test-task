@@ -1,4 +1,4 @@
-﻿using HomeTask.Core.Models;
+﻿using HomeTask.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeTask.Core.Infrastructure.Database;
