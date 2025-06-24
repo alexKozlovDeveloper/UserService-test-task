@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeTask.ConsoleApp", "Home
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeTask.Core", "HomeTask.Core\HomeTask.Core.csproj", "{C579A3BC-D519-4765-8FD3-94D2CD1E287F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeTask.Core.Tests", "HomeTask.Core.Tests\HomeTask.Core.Tests.csproj", "{B4D5A441-9486-4757-A1EC-4986D000FA9F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C579A3BC-D519-4765-8FD3-94D2CD1E287F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C579A3BC-D519-4765-8FD3-94D2CD1E287F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C579A3BC-D519-4765-8FD3-94D2CD1E287F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4D5A441-9486-4757-A1EC-4986D000FA9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4D5A441-9486-4757-A1EC-4986D000FA9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4D5A441-9486-4757-A1EC-4986D000FA9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4D5A441-9486-4757-A1EC-4986D000FA9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

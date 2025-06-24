@@ -6,6 +6,7 @@ namespace HomeTask.Core.Interfaces.Implementations;
 
 public class UserService(
     IPasswordHashService PasswordHashService,
+    IUserNotificationService UserNotificationService,
     HomeTaskDbContext DbContext
     )
 {
@@ -51,14 +52,15 @@ public class UserService(
         //}
     }
 
-    public async Task<List<UserDto>> GetUsersAsync(CancellationToken ct)
+    public async Task<IList<UserDto>> GetUsersAsync(CancellationToken ct)
     {
         //var users = new List<string>();
 
         var users = await DbContext.Users
             .Select(x => new UserDto
             {
-                Name = x.Name
+                Name = x.Name,
+                Role = x.Role
             })
             .ToListAsync(ct);
 
@@ -95,6 +97,7 @@ public class UserService(
 
         await DbContext.SaveChangesAsync(ct);
 
+        await UserNotificationService.NotifyUserUpdated(new UserDto { Name = user.Name, Role = user.Role });
 
         //if (newRole != "Admin" && newRole != "User")
         //{
