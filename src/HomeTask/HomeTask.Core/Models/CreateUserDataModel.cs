@@ -18,7 +18,7 @@ public class CreateUserDataModel
 
         if (string.IsNullOrWhiteSpace(Email))
         {
-            throw new Exception($"{nameof(Name)} can't be empty");
+            throw new Exception($"{nameof(Email)} can't be empty");
         }
 
         var emailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
@@ -26,6 +26,11 @@ public class CreateUserDataModel
         if (!emailRegex.IsMatch(Email))
         {
             throw new Exception($"Invalid email");
+        }
+
+        if (string.IsNullOrWhiteSpace(Password))
+        {
+            throw new Exception($"{nameof(Password)} can't be empty");
         }
 
         var passwordRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$");
