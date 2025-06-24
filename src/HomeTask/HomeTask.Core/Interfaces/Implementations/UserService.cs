@@ -10,22 +10,8 @@ public class UserService(
     HomeTaskDbContext DbContext
     )
 {
-    public async Task<int> CreateUser(
-        CreateUserDataModel model, CancellationToken ct
-        //string name, string email, string password, string role
-        )
+    public async Task<int> CreateUserAsync(CreateUserDataModel model, CancellationToken ct)
     {
-        //if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-        //{
-        //    throw new Exception("Invalid input");
-        //}
-
-        //var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
-        //if (!emailRegex.IsMatch(email))
-        //{
-        //    throw new Exception("Invalid email");
-        //}
-
         model.Validate();
 
         var user = new User
@@ -41,21 +27,10 @@ public class UserService(
         await DbContext.SaveChangesAsync(ct);
 
         return user.Id;
-
-        //var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-
-        //using (var db = new SqlConnection("connectionString"))
-        //{
-        //    db.Open();
-        //    var command = new SqlCommand($"INSERT INTO Users (Name, Email, PasswordHash, Role) VALUES ('{name}', '{email}', '{passwordHash}', '{role}')", db);
-        //    command.ExecuteNonQuery();
-        //}
     }
 
     public async Task<IList<UserDto>> GetUsersAsync(CancellationToken ct)
     {
-        //var users = new List<string>();
-
         var users = await DbContext.Users
             .Select(x => new UserDto
             {
@@ -65,24 +40,9 @@ public class UserService(
             .ToListAsync(ct);
 
         return users;
-
-        //using (var db = new SqlConnection("connectionString"))
-        //{
-        //    db.Open();
-        //    var command = new SqlCommand("SELECT Name FROM Users", db);
-        //    using (var reader = command.ExecuteReader())
-        //    {
-        //        while (reader.Read())
-        //        {
-        //            users.Add(reader.GetString(0));
-        //        }
-        //    }
-        //}
-
-        //return users;
     }
 
-    public async Task UpdateUserRole(int userId, UserRole newRole, CancellationToken ct)
+    public async Task UpdateUserRoleAsync(int userId, UserRole newRole, CancellationToken ct)
     {
         var user = await DbContext.Users
             .Where(x => x.Id == userId)
@@ -98,17 +58,5 @@ public class UserService(
         await DbContext.SaveChangesAsync(ct);
 
         await UserNotificationService.NotifyUserUpdated(new UserDto { Name = user.Name, Role = user.Role });
-
-        //if (newRole != "Admin" && newRole != "User")
-        //{
-        //    throw new Exception("Invalid role");
-        //}
-
-        //using (var db = new SqlConnection("connectionString"))
-        //{
-        //    db.Open();
-        //    var command = new SqlCommand($"UPDATE Users SET Role = '{newRole}' WHERE Id = {userId}", db);
-        //    command.ExecuteNonQuery();
-        //}
     }
 }
