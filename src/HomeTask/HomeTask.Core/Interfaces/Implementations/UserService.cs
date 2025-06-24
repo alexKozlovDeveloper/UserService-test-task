@@ -8,7 +8,7 @@ public class UserService(
     IPasswordHashService PasswordHashService,
     IUserNotificationService UserNotificationService,
     HomeTaskDbContext DbContext
-    )
+    ) : IUserService
 {
     public async Task<int> CreateUserAsync(CreateUserDataModel model, CancellationToken ct)
     {
