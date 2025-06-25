@@ -21,7 +21,7 @@ public class UserServiceTests
     {
         // Arrange
         var hashServiceMock = new Mock<IPasswordHashService>();
-        var userNotificationService = new Mock<IUserNotificationService>();
+        var userNotificationService = new Mock<IEventService>();
 
         var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
         var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
@@ -58,13 +58,13 @@ public class UserServiceTests
     {
         // Arrange
         var hashServiceMock = new Mock<IPasswordHashService>();
-        var userNotificationService = new Mock<IUserNotificationService>();
+        var userNotificationService = new Mock<IEventService>();
 
         UserResponseModel? notifiedUser = null;
 
         userNotificationService
-            .Setup(x => x.NotifyUserUpdatedAsync(It.IsAny<UserResponseModel>(), It.IsAny<CancellationToken>()))
-            .Callback<UserResponseModel, CancellationToken>((user, ct) => notifiedUser = user)
+            .Setup(x => x.SendAsync(It.IsAny<UserUpdatedEvent>(), It.IsAny<CancellationToken>()))
+            .Callback<UserUpdatedEvent, CancellationToken>((model, ct) => notifiedUser = model.User)
             .Returns(Task.CompletedTask);
 
         var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
@@ -112,7 +112,7 @@ public class UserServiceTests
     {
         // Arrange
         var hashServiceMock = new Mock<IPasswordHashService>();
-        var userNotificationService = new Mock<IUserNotificationService>();
+        var userNotificationService = new Mock<IEventService>();
 
         var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
         var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
@@ -157,7 +157,7 @@ public class UserServiceTests
     {
         // Arrange
         var hashServiceMock = new Mock<IPasswordHashService>();
-        var userNotificationService = new Mock<IUserNotificationService>();
+        var userNotificationService = new Mock<IEventService>();
 
         var passwordHash = "abc3";
 
@@ -226,7 +226,7 @@ public class UserServiceTests
     {
         // Arrange
         var hashServiceMock = new Mock<IPasswordHashService>();
-        var userNotificationService = new Mock<IUserNotificationService>();
+        var userNotificationService = new Mock<IEventService>();
 
         var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
         var user2 = new User { Name = "Jon", Email = "Jon@email.com", PasswordHash = "vmsC1QQbe2R", Role = UserRole.User };
