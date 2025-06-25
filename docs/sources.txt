@@ -1,0 +1,4 @@
+https://learn.microsoft.com/en-us/ef/core/get-started/overview/first-app?tabs=visual-studio
+https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-csharp-with-xunit
+https://automationpanda.com/2020/07/07/arrange-act-assert-a-pattern-for-writing-good-tests/
+https://stackoverflow.com/questions/54219742/mocking-ef-core-dbcontext-and-dbset
