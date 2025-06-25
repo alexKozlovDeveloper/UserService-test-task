@@ -60,6 +60,7 @@ public class UserService(
 
         await DbContext.SaveChangesAsync(ct);
 
+        // TODO: rework as event ? MediatR ?
         await UserNotificationService.NotifyUserUpdatedAsync(new UserResponseModel 
         { 
             Id = user.Id, 
