@@ -1,6 +1,7 @@
 ﻿using HomeTask.Core.Interfaces.Implementations;
 
 namespace HomeTask.Core.Tests;
+
 public class PasswordHashServiceTests
 {
     [Fact]
