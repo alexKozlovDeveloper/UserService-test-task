@@ -63,7 +63,7 @@ public class UserServiceTests
         UserResponseModel? notifiedUser = null;
 
         userNotificationService
-            .Setup(x => x.NotifyUserUpdated(It.IsAny<UserResponseModel>()))
+            .Setup(x => x.NotifyUserUpdatedAsync(It.IsAny<UserResponseModel>(), It.IsAny<CancellationToken>()))
             .Callback<UserResponseModel>(user => notifiedUser = user)
             .Returns(Task.CompletedTask);
 
@@ -273,6 +273,7 @@ public class UserServiceTests
 
     private void EqualUser(User expected, UserResponseModel result) 
     {
+        Assert.Equal(expected.Id, result.Id);
         Assert.Equal(expected.Name, result.Name);
         Assert.Equal(expected.Role, result.Role);
     }

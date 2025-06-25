@@ -36,6 +36,7 @@ public class UserService(
         var users = await DbContext.Users
             .Select(x => new UserResponseModel
             {
+                Id = x.Id,
                 Name = x.Name,
                 Role = x.Role
             })
@@ -59,6 +60,11 @@ public class UserService(
 
         await DbContext.SaveChangesAsync(ct);
 
-        await UserNotificationService.NotifyUserUpdated(new UserResponseModel { Name = user.Name, Role = user.Role });
+        await UserNotificationService.NotifyUserUpdatedAsync(new UserResponseModel 
+        { 
+            Id = user.Id, 
+            Name = user.Name, 
+            Role = user.Role 
+        }, ct);
     }
 }

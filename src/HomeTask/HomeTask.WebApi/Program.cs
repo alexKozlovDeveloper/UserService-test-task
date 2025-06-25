@@ -19,7 +19,9 @@ builder.Services.AddDbContext<HomeTaskDbContext>(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
-builder.Services.AddSingleton<IUserNotificationService, UserNotificationService>();
+builder.Services.AddScoped<IUserNotificationService, UserNotificationService>();
+
+builder.Services.AddSingleton<WebSocketConnectionManager>();
 
 var app = builder.Build();
 
@@ -41,5 +43,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseWebSockets();
 
 app.Run();

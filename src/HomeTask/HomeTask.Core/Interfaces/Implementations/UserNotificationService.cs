@@ -2,10 +2,12 @@
 
 namespace HomeTask.Core.Interfaces.Implementations;
 
-public class UserNotificationService : IUserNotificationService
+public class UserNotificationService(WebSocketConnectionManager WebSocketConnectionManager) : IUserNotificationService
 {
-    public Task NotifyUserUpdated(UserResponseModel user)
+    public async Task NotifyUserUpdatedAsync(UserResponseModel user, CancellationToken ct)
     {
-        return Task.CompletedTask;
+        var message = System.Text.Json.JsonSerializer.Serialize(user);
+
+        await WebSocketConnectionManager.NotifyAsync(user.Id, message, ct);
     }
 }

@@ -4,5 +4,5 @@ namespace HomeTask.Core.Interfaces;
 
 public interface IUserNotificationService
 {
-    Task NotifyUserUpdated(UserResponseModel user);
+    Task NotifyUserUpdatedAsync(UserResponseModel user, CancellationToken ct);
 }
