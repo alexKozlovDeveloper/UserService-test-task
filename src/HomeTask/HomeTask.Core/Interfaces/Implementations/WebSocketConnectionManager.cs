@@ -28,20 +28,6 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
         return socketId;
     }
 
-    public void RemoveSocket(int userId, Guid socketId)
-    {
-        lock (_lock)
-        {
-            if (_userSocketsMapping.TryGetValue(userId, out var userSockets))
-            {
-                if (userSockets.ContainsKey(socketId)) 
-                {
-                    userSockets.Remove(socketId);
-                }
-            }            
-        }
-    }
-
     public async Task NotifyAsync(int userId, string message, CancellationToken ct)
     {
         var buffer = Encoding.UTF8.GetBytes(message);
