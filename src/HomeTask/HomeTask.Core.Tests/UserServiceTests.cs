@@ -64,7 +64,7 @@ public class UserServiceTests
 
         userNotificationService
             .Setup(x => x.NotifyUserUpdatedAsync(It.IsAny<UserResponseModel>(), It.IsAny<CancellationToken>()))
-            .Callback<UserResponseModel>(user => notifiedUser = user)
+            .Callback<UserResponseModel, CancellationToken>((user, ct) => notifiedUser = user)
             .Returns(Task.CompletedTask);
 
         var user1 = new User { Name = "Alex", Email = "Alex@email.com", PasswordHash = "Gt9Yc4AiI", Role = UserRole.User };
