@@ -32,7 +32,7 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
     {
         var buffer = Encoding.UTF8.GetBytes(message);
 
-       List<WebSocket> sockets;
+        List<WebSocket> sockets;
 
         lock (_lock)
         {
