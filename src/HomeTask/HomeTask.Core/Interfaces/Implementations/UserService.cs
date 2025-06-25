@@ -1,5 +1,6 @@
 ﻿using HomeTask.Core.Entities;
 using HomeTask.Core.Infrastructure.Database;
+using HomeTask.Core.Models;
 using HomeTask.Core.Models.Request;
 using HomeTask.Core.Models.Response;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,7 @@ namespace HomeTask.Core.Interfaces.Implementations;
 
 public class UserService(
     IPasswordHashService PasswordHashService,
-    IUserNotificationService UserNotificationService,
+    IEventService EventService,
     HomeTaskDbContext DbContext
     ) : IUserService
 {
@@ -60,12 +61,14 @@ public class UserService(
 
         await DbContext.SaveChangesAsync(ct);
 
-        // TODO: rework as event ? MediatR ?
-        await UserNotificationService.NotifyUserUpdatedAsync(new UserResponseModel 
-        { 
-            Id = user.Id, 
-            Name = user.Name, 
-            Role = user.Role 
+        await EventService.SendAsync(new UserUpdatedEvent 
+        {
+            User = new UserResponseModel
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Role = user.Role
+            }
         }, ct);
     }
 }

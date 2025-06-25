@@ -19,7 +19,7 @@ builder.Services.AddDbContext<HomeTaskDbContext>(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
-builder.Services.AddScoped<IUserNotificationService, UserNotificationService>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 builder.Services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();
 
