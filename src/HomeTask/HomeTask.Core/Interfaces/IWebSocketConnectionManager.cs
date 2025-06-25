@@ -2,6 +2,7 @@
 
 namespace HomeTask.Core.Interfaces;
 
+// TODO: manager must know nothing about user ? only message delivery ?
 public interface IWebSocketConnectionManager
 {
     Guid AddSocket(int userId, WebSocket socket);
