@@ -2,7 +2,7 @@
 
 namespace HomeTask.Core.Interfaces.Implementations;
 
-public class UserNotificationService(WebSocketConnectionManager WebSocketConnectionManager) : IUserNotificationService
+public class UserNotificationService(IWebSocketConnectionManager WebSocketConnectionManager) : IUserNotificationService
 {
     public async Task NotifyUserUpdatedAsync(UserResponseModel user, CancellationToken ct)
     {

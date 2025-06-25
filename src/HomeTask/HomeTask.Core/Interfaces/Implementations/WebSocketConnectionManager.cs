@@ -3,7 +3,7 @@ using System.Text;
 
 namespace HomeTask.Core.Interfaces.Implementations;
 
-public class WebSocketConnectionManager
+public class WebSocketConnectionManager : IWebSocketConnectionManager
 {
     private readonly Dictionary<int, Dictionary<Guid, WebSocket>> _userSocketsMapping = [];
 

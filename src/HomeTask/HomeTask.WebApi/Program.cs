@@ -21,7 +21,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
 builder.Services.AddScoped<IUserNotificationService, UserNotificationService>();
 
-builder.Services.AddSingleton<WebSocketConnectionManager>();
+builder.Services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();
 
 var app = builder.Build();
 
